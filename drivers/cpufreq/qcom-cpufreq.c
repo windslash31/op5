@@ -42,8 +42,6 @@ struct cpufreq_suspend_t {
 };
 
 static DEFINE_PER_CPU(struct cpufreq_suspend_t, suspend_data);
-
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 #define LITTLE_CPU_QOS_FREQ 1900800
 #define BIG_CPU_QOS_FREQ    2361600
 
@@ -70,7 +68,6 @@ static struct qos_request_value c1_qos_request_value = {
 	.max_cpufreq = INT_MAX,
 	.min_cpufreq = MIN_CPUFREQ,
 };
-#endif
 
 static int set_cpu_freq(struct cpufreq_policy *policy, unsigned int new_freq,
 			unsigned int index)
@@ -107,27 +104,21 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 	mutex_lock(&per_cpu(suspend_data, policy->cpu).suspend_mutex);
 
 	if (target_freq == policy->cur) {
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 		if (c1_cpufreq_update_flag)
 			c1_cpufreq_update_flag = false;
 		else
-#endif
 			goto done;
 	}
 
 	if (per_cpu(suspend_data, policy->cpu).device_suspended) {
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 		if (likely(qos_cpufreq_flag)) {
 			qos_cpufreq_flag = false;
 		} else {
-#endif
 			pr_debug("cpufreq: cpu%d change in suspend.\n",
 				policy->cpu);
 			ret = -EFAULT;
 			goto done;
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 		}
-#endif
 	}
 
 	table = cpufreq_frequency_get_table(policy->cpu);
@@ -137,7 +128,6 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 		ret = -ENODEV;
 		goto done;
 	}
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 	if (cluster1_first_cpu) {
 		if (policy->cpu >= cluster1_first_cpu) {
 			target_freq = min(c1_qos_request_value.max_cpufreq,
@@ -151,7 +141,6 @@ static int msm_cpufreq_target(struct cpufreq_policy *policy,
 				target_freq);
 		}
 	}
-#endif
 
 	if (cpufreq_frequency_table_target(policy, table, target_freq, relation,
 			&index)) {
@@ -504,13 +493,11 @@ static int __init msm_cpufreq_probe(struct platform_device *pdev)
 			}
 			ftbl = per_cpu(freq_table, cpu - 1);
 		} else {
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 			if (!IS_ERR(ftbl))
 				cluster1_first_cpu = cpu;
 			/* pr_info("cluster1_first_cpu: %d",
 			* cluster1_first_cpu);
 			*/
-#endif
 		}
 		per_cpu(freq_table, cpu) = ftbl;
 	}
@@ -531,7 +518,6 @@ static struct platform_driver msm_cpufreq_plat_driver = {
 	},
 };
 
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 static int get_available_cpufreq(bool c0)
 {
 	struct cpufreq_frequency_table *table, *pos;
@@ -708,7 +694,6 @@ void c1_cpufreq_limit_queue(void)
 		queue_work(qos_cpufreq_work_queue, &c1_cpufreq_limit_work);
 }
 EXPORT_SYMBOL_GPL(c1_cpufreq_limit_queue);
-#endif
 
 static int __init msm_cpufreq_register(void)
 {
@@ -729,8 +714,6 @@ static int __init msm_cpufreq_register(void)
 					suspend_mutex));
 		return rc;
 	}
-
-#ifdef CONFIG_CPU_FREQ_ONEPLUS_QOS
 	/* add cpufreq qos notify */
 	pm_qos_add_notifier(PM_QOS_C0_CPUFREQ_MAX, &c0_cpufreq_qos_notifier);
 	pm_qos_add_notifier(PM_QOS_C0_CPUFREQ_MIN, &c0_cpufreq_qos_notifier);
@@ -740,7 +723,6 @@ static int __init msm_cpufreq_register(void)
 	qos_cpufreq_work_queue = create_singlethread_workqueue("qos_cpufreq");
 	if (qos_cpufreq_work_queue == NULL)
 		pr_info("%s: failed to create work queue", __func__);
-#endif
 
 	register_pm_notifier(&msm_cpufreq_pm_notifier);
 	return cpufreq_register_driver(&msm_cpufreq_driver);
