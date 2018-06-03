@@ -50,11 +50,6 @@ static int dynamic_stune_boost;
 module_param(dynamic_stune_boost, uint, 0644);
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-static int dynamic_stune_boost;
-module_param(dynamic_stune_boost, uint, 0644);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
-
 static struct delayed_work input_boost_rem;
 static u64 last_input_time;
 
@@ -225,11 +220,6 @@ static void do_input_boost(struct work_struct *work)
 
 	/* Update policies for all online CPUs */
 	update_policy_online();
-
-#ifdef CONFIG_DYNAMIC_STUNE_BOOST
-	/* Set dynamic stune boost value */
-	do_stune_boost("top-app", dynamic_stune_boost);
-#endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #ifdef CONFIG_DYNAMIC_STUNE_BOOST
 	/* Set dynamic stune boost value */
