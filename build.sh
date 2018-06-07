@@ -8,15 +8,15 @@ rm ${HOME}/kernel/AnyKernel2/kernels/custom/* \
    ${HOME}/kernel/AnyKernel2/ramdisk/modules \
    ${HOME}/kernel/AnyKernel2/RenderFlash*
 
-rm -rf ${HOME}/kernel/flash-clang-7.x ${HOME}/kernel/aarch64-linux-gnu
+# rm -rf ${HOME}/kernel/flash-clang-7.x ${HOME}/kernel/aarch64-linux-gnu
 
 # Update Clang
-cd ${HOME}/kernel/scripts/ && git pull && ./build-clang
-mv ${HOME}/toolchains/flash-clang-7.x ${HOME}/kernel/
+#cd ${HOME}/kernel/scripts/ && git pull && ./build-clang
+#mv ${HOME}/toolchains/flash-clang-7.x ${HOME}/kernel/
 
 # Update Linaro
-cd ${HOME}/kernel/build-tools-gcc && git pull && ./build -a arm64 -s linaro -v 7
-mv ${HOME}/kernel/build-tools-gcc/aarch64-linux-gnu ${HOME}/kernel/
+#cd ${HOME}/kernel/build-tools-gcc && git pull && ./build -a arm64 -s linaro -v 7
+#mv ${HOME}/kernel/build-tools-gcc/aarch64-linux-gnu ${HOME}/kernel/
 
 # Build "custom" kernel
 cd ${HOME}/kernel/op5
@@ -61,7 +61,7 @@ mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2
 
 # Make zip.
 cd ${HOME}/kernel/AnyKernel2
-zip -r9	RenderFlash-2.3.1.zip * -x README RenderFlash-2.3.1.zip
+zip -r9	RenderFlash-2.3.2.zip * -x README RenderFlash-2.3.2.zip
 
 # Move to git folder and auto upload
 mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-zips/op5/8.1/stable/
