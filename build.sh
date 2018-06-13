@@ -61,7 +61,7 @@ mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2
 
 # Make zip.
 cd ${HOME}/kernel/AnyKernel2
-zip -r9	RenderFlash-2.3.2.zip * -x README RenderFlash-2.3.2.zip
+zip -r9	RenderFlash-2.3.3.zip * -x README RenderFlash-2.3.3.zip
 
 # Move to git folder and auto upload
 mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-zips/op5/8.1/stable/
