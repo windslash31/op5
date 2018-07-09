@@ -306,7 +306,7 @@ static ssize_t audio_output_latency_dbgfs_write(struct file *file,
 		pr_err("%s: err count is more %zd\n", __func__, count);
 		return -EINVAL;
 	} else {
-		temp  = kmalloc(2*sizeof(char), GFP_KERNEL);
+		temp  = kmalloc(2, GFP_KERNEL);
 	}
 
 	out_cold_index = 0;
@@ -363,7 +363,7 @@ static ssize_t audio_input_latency_dbgfs_write(struct file *file,
 		pr_err("%s: err count is more %zd\n", __func__, count);
 		return -EINVAL;
 	} else {
-		temp  = kmalloc(2*sizeof(char), GFP_KERNEL);
+		temp  = kmalloc(2, GFP_KERNEL);
 	}
 	if (temp) {
 		if (copy_from_user(temp, buf, 2*sizeof(char))) {
@@ -2190,8 +2190,11 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 		pr_debug("%s: ASM_STREAM_EVENT payload[0][0x%x] payload[1][0x%x]",
 				 __func__, payload[0], payload[1]);
 		i = is_adsp_raise_event(data->opcode);
-		if (i < 0)
+		if (i < 0) {
+			spin_unlock_irqrestore(
+				&(session[session_id].session_lock), flags);
 			return 0;
+		}
 
 		/* repack payload for asm_stream_pp_event
 		 * package is composed of event type + size + actual payload
@@ -2200,8 +2203,11 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 		pp_event_package = kzalloc(payload_size
 				+ sizeof(struct msm_adsp_event_data),
 				GFP_ATOMIC);
-		if (!pp_event_package)
+		if (!pp_event_package) {
+			spin_unlock_irqrestore(
+				&(session[session_id].session_lock), flags);
 			return -ENOMEM;
+		}
 
 		pp_event_package->event_type = i;
 		pp_event_package->payload_len = payload_size;
@@ -2210,6 +2216,8 @@ static int32_t q6asm_callback(struct apr_client_data *data, void *priv)
 		ac->cb(data->opcode, data->token,
 			(void *)pp_event_package, ac->priv);
 		kfree(pp_event_package);
+		spin_unlock_irqrestore(
+			&(session[session_id].session_lock), flags);
 		return 0;
 	case ASM_SESSION_CMDRSP_ADJUST_SESSION_CLOCK_V2:
 		pr_debug("%s: ASM_SESSION_CMDRSP_ADJUST_SESSION_CLOCK_V2 sesion %d status 0x%x msw %u lsw %u\n",
@@ -6659,7 +6667,7 @@ static int q6asm_memory_map_regions(struct audio_client *ac, int dir,
 		return -EINVAL;
 	}
 
-	buffer_node = kzalloc(sizeof(struct asm_buffer_node) * bufcnt,
+	buffer_node = kcalloc(bufcnt, sizeof(struct asm_buffer_node),
 				GFP_KERNEL);
 	if (!buffer_node) {
 		pr_err("%s: Mem alloc failed for asm_buffer_node\n",

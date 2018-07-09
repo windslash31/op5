@@ -29,8 +29,30 @@ struct cpuidle_driver powernv_idle_driver = {
 
 static int max_idle_state;
 static struct cpuidle_state *cpuidle_state_table;
-static u64 snooze_timeout;
+static u64 default_snooze_timeout;
 static bool snooze_timeout_en;
+
+static u64 get_snooze_timeout(struct cpuidle_device *dev,
+			      struct cpuidle_driver *drv,
+			      int index)
+{
+	int i;
+
+	if (unlikely(!snooze_timeout_en))
+		return default_snooze_timeout;
+
+	for (i = index + 1; i < drv->state_count; i++) {
+		struct cpuidle_state *s = &drv->states[i];
+		struct cpuidle_state_usage *su = &dev->states_usage[i];
+
+		if (s->disabled || su->disable)
+			continue;
+
+		return s->target_residency * tb_ticks_per_usec;
+	}
+
+	return default_snooze_timeout;
+}
 
 static int snooze_loop(struct cpuidle_device *dev,
 			struct cpuidle_driver *drv,
@@ -41,7 +63,7 @@ static int snooze_loop(struct cpuidle_device *dev,
 	local_irq_enable();
 	set_thread_flag(TIF_POLLING_NRFLAG);
 
-	snooze_exit_time = get_tb() + snooze_timeout;
+	snooze_exit_time = get_tb() + get_snooze_timeout(dev, drv, index);
 	ppc64_runlatch_off();
 	while (!need_resched()) {
 		HMT_low();
@@ -204,14 +226,14 @@ static int powernv_add_idle_states(void)
 		goto out;
 	}
 
-	flags = kzalloc(sizeof(*flags) * dt_idle_states, GFP_KERNEL);
+	flags = kcalloc(dt_idle_states, sizeof(*flags), GFP_KERNEL);
 	if (of_property_read_u32_array(power_mgt,
 			"ibm,cpu-idle-state-flags", flags, dt_idle_states)) {
 		pr_warn("cpuidle-powernv : missing ibm,cpu-idle-state-flags in DT\n");
 		goto out_free_flags;
 	}
 
-	latency_ns = kzalloc(sizeof(*latency_ns) * dt_idle_states, GFP_KERNEL);
+	latency_ns = kcalloc(dt_idle_states, sizeof(*latency_ns), GFP_KERNEL);
 	rc = of_property_read_u32_array(power_mgt,
 		"ibm,cpu-idle-state-latencies-ns", latency_ns, dt_idle_states);
 	if (rc) {
@@ -219,7 +241,8 @@ static int powernv_add_idle_states(void)
 		goto out_free_latency;
 	}
 
-	residency_ns = kzalloc(sizeof(*residency_ns) * dt_idle_states, GFP_KERNEL);
+	residency_ns = kcalloc(dt_idle_states, sizeof(*residency_ns),
+			       GFP_KERNEL);
 	rc = of_property_read_u32_array(power_mgt,
 		"ibm,cpu-idle-state-residency-ns", residency_ns, dt_idle_states);
 
@@ -286,11 +309,9 @@ static int powernv_idle_probe(void)
 		cpuidle_state_table = powernv_states;
 		/* Device tree can indicate more idle states */
 		max_idle_state = powernv_add_idle_states();
-		if (max_idle_state > 1) {
+		default_snooze_timeout = TICK_USEC * tb_ticks_per_usec;
+		if (max_idle_state > 1)
 			snooze_timeout_en = true;
-			snooze_timeout = powernv_states[1].target_residency *
-					 tb_ticks_per_usec;
-		}
  	} else
  		return -ENODEV;
 

@@ -648,7 +648,7 @@ int spi_register_board_info(struct spi_board_info const *info, unsigned n)
 	if (!n)
 		return -EINVAL;
 
-	bi = kzalloc(n * sizeof(*bi), GFP_KERNEL);
+	bi = kcalloc(n, sizeof(*bi), GFP_KERNEL);
 	if (!bi)
 		return -ENOMEM;
 
@@ -707,8 +707,14 @@ static int spi_map_buf(struct spi_master *master, struct device *dev,
 	for (i = 0; i < sgs; i++) {
 
 		if (vmalloced_buf) {
-			min = min_t(size_t,
-				    len, desc_len - offset_in_page(buf));
+			/*
+			 * Next scatterlist entry size is the minimum between
+			 * the desc_len and the remaining buffer length that
+			 * fits in a page.
+			 */
+			min = min_t(size_t, desc_len,
+				    min_t(size_t, len,
+					  PAGE_SIZE - offset_in_page(buf)));
 			vm_page = vmalloc_to_page(buf);
 			if (!vm_page) {
 				sg_free_table(sgt);
@@ -1730,8 +1736,8 @@ static int of_spi_register_master(struct spi_master *master)
 	else if (nb < 0)
 		return nb;
 
-	cs = devm_kzalloc(&master->dev,
-			  sizeof(int) * master->num_chipselect,
+	cs = devm_kcalloc(&master->dev,
+			  master->num_chipselect, sizeof(int),
 			  GFP_KERNEL);
 	master->cs_gpios = cs;
 
