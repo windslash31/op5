@@ -8,7 +8,7 @@ rm ${HOME}/kernel/AnyKernel2/kernels/custom/* \
    ${HOME}/kernel/AnyKernel2/ramdisk/modules \
    ${HOME}/kernel/AnyKernel2/RenderFlash*
 
-# rm -rf ${HOME}/kernel/flash-clang-7.x rm -rf ${HOME}/kernel/aarch64-linux-gnu
+ rm -rf ${HOME}/kernel/flash-clang-7.x rm -rf ${HOME}/kernel/aarch64-linux-gnu
 
 # Update Clang
 cd ${HOME}/kernel/scripts/ && git pull && ./build-clang
@@ -61,7 +61,7 @@ mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2
 
 # Make zip.
 cd ${HOME}/kernel/AnyKernel2
-zip -r9	RenderFlash-2.3.6.zip * -x README RenderFlash-2.3.6.zip
+zip -r9	RenderFlash-2.3.7.zip * -x README RenderFlash-2.3.7.zip
 
 # Move to git folder and auto upload
 mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-zips/op5/8.1/stable/
