@@ -8,15 +8,15 @@ rm ${HOME}/kernel/AnyKernel2/kernels/custom/* \
    ${HOME}/kernel/AnyKernel2/ramdisk/modules \
    ${HOME}/kernel/AnyKernel2/RenderFlash*
 
- rm -rf ${HOME}/kernel/flash-clang-7.x rm -rf ${HOME}/kernel/aarch64-linux-gnu
+# rm -rf ${HOME}/kernel/flash-clang-7.x rm -rf ${HOME}/kernel/aarch64-linux-gnu
 
 # Update Clang
-cd ${HOME}/kernel/scripts/ && git pull && ./build-clang
-mv ${HOME}/toolchains/flash-clang-7.x ${HOME}/kernel/
+# cd ${HOME}/kernel/scripts/ && git pull && ./build-clang
+# mv ${HOME}/toolchains/flash-clang-7.x ${HOME}/kernel/
 
 # Update TC
-cd ${HOME}/kernel/build-tools-gcc && git pull && ./build -a arm64 -s linaro -v 7
-mv ${HOME}/kernel/build-tools-gcc/aarch64-linux-gnu ${HOME}/kernel/
+# cd ${HOME}/kernel/build-tools-gcc && git pull && ./build -a arm64 -s linaro -v 7
+# mv ${HOME}/kernel/build-tools-gcc/aarch64-linux-gnu ${HOME}/kernel/
 
 # Build "custom" kernel
 cd ${HOME}/kernel/op5
@@ -36,36 +36,36 @@ mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2
 # Build "oos" kernel
 rm -rf out/
 
-make O=out ARCH=arm64 flash-oos_defconfig
-make -j$(nproc --all) O=out \
-                      ARCH=arm64 \
-                      CC="${CLANG}" \
-                      CLANG_TRIPLE=aarch64-linux-gnu- \
-                      CROSS_COMPILE="${CROSS_COMPILE}" \
-                      KBUILD_COMPILER_STRING="$(${CLANG}  --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')"
+# make O=out ARCH=arm64 flash-oos_defconfig
+# make -j$(nproc --all) O=out \
+#                      ARCH=arm64 \
+#                      CC="${CLANG}" \
+#                      CLANG_TRIPLE=aarch64-linux-gnu- \
+#                      CROSS_COMPILE="${CROSS_COMPILE}" \
+#                      KBUILD_COMPILER_STRING="$(${CLANG}  --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')"
 
 # Move OOS Image to AK
 mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2/kernels/oos
 
 # Strip/sign wlan.ko
-(
-    mkdir -p ${HOME}/kernel/AnyKernel2/ramdisk/modules
-    cd out
-    ${CROSS_COMPILE}strip --strip-unneeded drivers/staging/qcacld-3.0/wlan.ko
-    ./scripts/sign-file sha512 \
-                        certs/signing_key.pem \
-                        certs/signing_key.x509 \
-                        drivers/staging/qcacld-3.0/wlan.ko
-    cp drivers/staging/qcacld-3.0/wlan.ko ${HOME}/kernel/AnyKernel2/ramdisk/modules
-)
+#(
+#    mkdir -p ${HOME}/kernel/AnyKernel2/ramdisk/modules
+#    cd out
+#    ${CROSS_COMPILE}strip --strip-unneeded drivers/staging/qcacld-3.0/wlan.ko
+#    ./scripts/sign-file sha512 \
+#                        certs/signing_key.pem \
+#                        certs/signing_key.x509 \
+#                        drivers/staging/qcacld-3.0/wlan.ko
+#    cp drivers/staging/qcacld-3.0/wlan.ko ${HOME}/kernel/AnyKernel2/ramdisk/modules
+#)
 
 # Make zip.
 cd ${HOME}/kernel/AnyKernel2
-zip -r9	RenderFlash-2.3.7.zip * -x README RenderFlash-2.3.7.zip
+zip -r9	RenderFlash-Treble-P.zip * -x README RenderFlash-Treble-P.zip
 
 # Move to git folder and auto upload
-mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-zips/op5/8.1/stable/
-cd ${HOME}/kernel/rfk-zips/
+mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-treble-zips/test/
+cd ${HOME}/kernel/rfk-treble-zips/
 git add *
 git commit -m "Update"
 git push
