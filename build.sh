@@ -20,7 +20,7 @@ rm ${HOME}/kernel/AnyKernel2/kernels/custom/* \
 
 # Build "custom" kernel
 cd ${HOME}/kernel/op5
-rm -rf out/
+# rm -rf out/
 
 make O=out ARCH=arm64 flash-custom_defconfig
 make -j$(nproc --all) O=out \
@@ -34,7 +34,7 @@ make -j$(nproc --all) O=out \
 mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2/kernels/custom
 
 # Build "oos" kernel
-rm -rf out/
+# rm -rf out/
 
 # make O=out ARCH=arm64 flash-oos_defconfig
 # make -j$(nproc --all) O=out \
@@ -45,7 +45,7 @@ rm -rf out/
 #                      KBUILD_COMPILER_STRING="$(${CLANG}  --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')"
 
 # Move OOS Image to AK
-mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2/kernels/oos
+# mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2/kernels/oos
 
 # Strip/sign wlan.ko
 #(
@@ -61,7 +61,7 @@ mv ${HOME}/kernel/op5/out/arch/arm64/boot/Image.gz-dtb ${HOME}/kernel/AnyKernel2
 
 # Make zip.
 cd ${HOME}/kernel/AnyKernel2
-zip -r9	RenderFlash-Treble-P.zip * -x README RenderFlash-Treble-P.zip
+zip -r9	RenderFlash-Treble-P-1.2.zip * -x README RenderFlash-Treble-P-1.2.zip
 
 # Move to git folder and auto upload
 mv ${HOME}/kernel/AnyKernel2/RenderFlash* ${HOME}/kernel/rfk-treble-zips/test/
